@@ -2,24 +2,27 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-class Client {
+public class Client {
+   private Socket socket = null;
+   static PrintStream out = null;
+   static Scanner in = null;
+   static int id;
    public static void main(String[] args) {
-      new Client("127.0.0.1", 8080).init();
-      // new Window();
+      new Client("127.0.0.1", 8080);
+      new Window();
    }
-   
-   private String host;
-   private int porta;
-   public Client(String host, int porta) {
-      this.host = host;
-      this.porta = porta;
-   }
-   
-   public void init() {
+
+   Client(String host, int porta) {
       try {
-         Socket socket = new Socket(this.host, this.porta);
-         new Receiver(socket).start();
-         new Sender(socket).start();
+         this.socket = new Socket(host, porta);
+         Client.out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
+         Client.in = new Scanner(socket.getInputStream()); //para receber do servidor
+
+         //PRIMEIRA LINHA QUE O O SERVIDOR envia é o ID DO PLAYER
+         Client.id = Integer.parseInt(in.nextLine());
+         System.out.println("Bem vindo! Seu id é " + Client.id);
+
+         new Receiver().start();
       } catch (UnknownHostException e) {
          System.out.println("UnknownHostException: " + e);
       } catch (IOException e) {
@@ -28,49 +31,16 @@ class Client {
    }
 }
 
-class Sender extends Thread {
-   private Socket socket;
-   public Sender(Socket socket) {
-      this.socket = socket;
-   }
-   public void run() {
-      try {
-         PrintStream out = new PrintStream(socket.getOutputStream());
-         Scanner stdIn = new Scanner(System.in);
-         
-         String clientInput;
-         while (stdIn.hasNextLine()) {
-            clientInput = stdIn.nextLine();
-            out.println(clientInput); //envia ao servidor
-         }
-         out.close();
-         stdIn.close();
-         socket.close();
-      } catch(IOException e) {
-         System.out.println("IOException: " + e);
-      }
-   }
-}
-
 class Receiver extends Thread {
-   private Socket socket;
-   public Receiver(Socket socket) {
-      this.socket = socket;
-   }
    public void run() {
-      try {
-         Scanner in = new Scanner(socket.getInputStream());
-         
-         String serverInput;
-         while (in.hasNextLine()) {
-            serverInput = in.nextLine(); //recebe do servidor
-            System.out.println(serverInput);
-         }
-         in.close();
-      } catch(UnknownHostException e) {
-         System.out.println("UnknownHostException: " + e);
-      } catch(IOException e) {
-         System.out.println("IOException: " + e);
+      String server;
+      while (Client.in.hasNextLine()) {
+         server = Client.in.nextLine(); //recebe do servidor
+
+         //ATUALIZAR A TELA COM O QUE CHEGOU DO SERVIDOR
+
+         System.out.println(server);
       }
+      Client.in.close();
    }
 }

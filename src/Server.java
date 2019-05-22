@@ -4,72 +4,99 @@ import java.util.*;
 
 //recebe e trata as informações de cada cliente!!!
 //depois, distribui para todos os clientes conectados ao servidor
+
 class Server {
    public static void main(String[] args) {
-      new Server(8080).init();
+      new Server(8080);
    }
-   private int port;
-   public Server(int port) {
-      this.port = port;
+   
+   static boolean logged[]; 
+   void initLogged() {
+      logged = new boolean[Sprite.qteMaxPlayers];
+      for (int i = 0; i < logged.length; i++)
+         logged[i] = false;
    }
-
-   public void init() {
+   boolean loggedIsFull() {
+      for (int i = 0; i < logged.length; i++)
+         if (logged[i] == false)
+            return false;
+      return true;
+   }
+   
+   Server(int portNumber) {
+      initLogged();
       try {
          System.out.println("Iniciando servidor...");
-         ServerSocket serverSocket = new ServerSocket(this.port); //socket escuta a porta
-         System.out.println("Porta " + this.port + " aberta.");
-         
-         //escuta clientes
-         while (true) {
-            System.out.println("Aguardando conexão...");
-            Socket clientSocket = serverSocket.accept();
-            System.out.println("Cliente " + clientSocket.getInetAddress().getHostName() + " se conectou.");
-            new ThreadClient(clientSocket).start();
-         }
-         // System.out.println("Servidor encerrado.");
-      } catch(IOException e) {
+         ServerSocket serverSocket = new ServerSocket(portNumber); // socket escuta a porta
+         System.out.println("Porta " + portNumber + " aberta.");
+
+         //PROBLEMA COM SERVIDOR LOTADO!
+         for (int i = 0; !loggedIsFull(); i = (++i)%logged.length)
+            if (!logged[i]) {
+               Socket clientSocket = serverSocket.accept();
+               new ClientManager(clientSocket, i).start();
+            }
+         //nao encerra o servidor enquanto a thread dos clientes continuam executando
+      } catch (IOException e) {
          System.out.println("IOException: " + e);
          System.exit(1);
       }
    }
 }
 
-class ThreadClient extends Thread {
+//cada cliente tem sua thread
+class ClientManager extends Thread {
    private Socket clientSocket = null;
-   static List<PrintStream> listClients = new ArrayList<PrintStream>(); //da classe!
-   
-   public ThreadClient(Socket clientSocket) {
+   private Scanner in = null;
+   private PrintStream out = null;
+   private int id;
+   private String inputLine, outputLine;
+
+   //de todos as classes (clientes)
+   static List<PrintStream> listOutClients = new ArrayList<PrintStream>(); 
+
+   ClientManager(Socket clientSocket, int id) {
+      this.id = id;
       this.clientSocket = clientSocket;
-   }
-   public void run() {
       try {
-         //leitor p o fluxo de entrada do cliente
-         Scanner in = new Scanner(clientSocket.getInputStream());
-         //gravador p o fluxo de saída do cliente
-         PrintStream out = new PrintStream(clientSocket.getOutputStream(), true);
-         listClients.add(out);
-         
-         String inputLine, outputLine;
-         while (in.hasNextLine()) { 
-            //FICA NO LOOPING ENQUANTO O CLIENTE TA NO SERVIDOR
-            inputLine = in.nextLine();
+         this.in = new Scanner(clientSocket.getInputStream()); // para receber do cliente
+         this.out = new PrintStream(clientSocket.getOutputStream(), true); // para enviar ao cliente
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+   }
 
-            //trata a entrada do cliente 
-            outputLine = inputLine;
+   public void run() {
+      clientConnected();
+      while (in.hasNextLine()) { //cliente está no servidor
+         inputLine = in.nextLine();
 
-            //distribui para todos os clientes
-            for (PrintStream outC : listClients)
-               outC.println(outputLine);
+         // trata/valida a entrada do cliente antes de enviar para todos
+         outputLine = inputLine;
 
-            // if (outputLine.equals(""))
-            //    break;
-         }
-         System.out.println("Cliente " + clientSocket.getInetAddress().getHostName() + " se desconectou.");
-         listClients.remove(out);
+         for (PrintStream outClient : listOutClients)
+            outClient.println(outputLine); //envia para todos os clientes
+
+         // if (outputLine.equals(""))
+         //    break;
+      }
+      clientDesconnected();
+   }
+   void clientConnected() {
+      System.out.println("Jogador " + id + " se conectou.");
+      listOutClients.add(out);
+      Server.logged[id] = true;
+      out.println(id);
+   }
+   void clientDesconnected() {
+      System.out.println("Jogador " + id + " se desconectou.");
+      listOutClients.remove(out);
+      Server.logged[id] = false;
+      try {
          in.close();
          out.close();
          clientSocket.close();
-      } catch(IOException e) {
+      } catch (IOException e) {
          e.printStackTrace();
       }
    }
