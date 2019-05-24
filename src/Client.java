@@ -30,17 +30,3 @@ public class Client {
       }
    }
 }
-
-class Receiver extends Thread {
-   public void run() {
-      String server;
-      while (Client.in.hasNextLine()) {
-         server = Client.in.nextLine(); //recebe do servidor
-
-         //ATUALIZAR A TELA COM O QUE CHEGOU DO SERVIDOR
-
-         System.out.println(server);
-      }
-      Client.in.close();
-   }
-}

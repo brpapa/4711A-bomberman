@@ -1,70 +1,107 @@
 import java.awt.*;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import javax.swing.*;
 
-class Design extends JPanel {
-   private static final long serialVersionUID = 1L;
-   Map m;
-   Player p;
-   
-   Design() {
-      m = new Map();
-      p = new Player();
-      setPreferredSize(new Dimension(Sprite.COL * Sprite.width, Sprite.LIN * Sprite.height));
+class Receiver extends Thread {
+   public void run() {
+      String str;
+
+      while (Client.in.hasNextLine()) {
+         // recebe uma linha inteira
+         str = Client.in.next();
+
+         if (str.equals("keyCodePressed"))
+            processKeyCodePressed(Client.in.nextInt(), Client.in.nextInt());
+
+      }
+      Client.in.close();
+   }
+
+   void processKeyCodePressed(int id, int keyCode) {
+      if (id == Client.id) {
+         Game.you.threadMove.setDirection(keyCode);
+         // Game.you.threadMove.notify(); // acorda a thread
+      } else if (id == (Client.id + 1) % Sprite.qtePlayers) {
+         Game.enemy.threadMove.setDirection(keyCode);
+         // Game.enemy.threadMove.notify(); // acorda a thread
+      }
+   }
+   // void processKeyCodeReleased(int id, int keyCode) {
+   // Game.you.threadMove.wait(); //adormece a thread
+
+   // }
+}
+
+// escuta enquanto a janela (JFrame) estiver em foco
+class Sender extends KeyAdapter {
+   public void keyPressed(KeyEvent e) {
+      Client.out.println("keyCodePressed " + Client.id + " " + e.getKeyCode());
+   }
+
+   public void keyReleased(KeyEvent e) {
+      Client.out.println("keyCodeReleased " + Client.id + " " + e.getKeyCode());
+   }
+}
+
+class Game extends JPanel {
+   static Player you, enemy;
+
+   Game() {
       Sprite.readAllImages();
+      Sprite.setGrid();
+      Sprite.setMaxLoopStatus();
+      Sprite.setSpawnCoordinates();
+      setPreferredSize(new Dimension(Sprite.COL * Sprite.width, Sprite.LIN * Sprite.height));
+
+      // passa a intância de JPanel pelo construtor para poder usar repaint()
+      Map.init(this);
+      try {
+         initPlayers();
+      } catch (InterruptedException e) {
+         e.printStackTrace();
+      }
    }
    
-   // função invocada com repaint()
+   //desenha os componentes, chamada por paint() e repaint()
    public void paintComponent(Graphics g) {
       // DÚVIDA: pq no logo após o inicio do programa ele executa paintComponet 2 vezes?
-      // System.out.println("teste");
       super.paintComponent(g);
-      m.drawBlocks(g);
-      m.drawBase(g);
-      p.draw(g);
-      
+      // Map.drawBlocks(g); //REDESENHA TODA HORA, TA ERRADO
+      Map.drawBase(g);
+      Game.enemy.drawPlayer(g);
+      Game.you.drawPlayer(g);
       Toolkit.getDefaultToolkit().sync();
+   }
+
+   //inicia os jogadores com as suas respectivas coordenadas iniciais e cores
+   private void initPlayers() throws InterruptedException {
+      you = new Player(
+         Sprite.spawn[Client.id].getX(), 
+         Sprite.spawn[Client.id].getY(),
+         Sprite.personColors[Client.id],
+         this
+      );
+      enemy = new Player(
+         Sprite.spawn[(Client.id+1)%Sprite.qtePlayers].getX(), 
+         Sprite.spawn[(Client.id+1)%Sprite.qtePlayers].getY(),
+         Sprite.personColors[(Client.id+1)%Sprite.qtePlayers],
+         this
+      );
    }
 }
 
 public class Window extends JFrame {
-   private static final long serialVersionUID = 1L;
-   Design d;
+   Game panel;
 
    Window() {
-      add(d = new Design());
+      add(panel = new Game());
       setTitle("Bomber Man");
       pack();
       setVisible(true);
-      setLocationRelativeTo(null);
+      // setLocationRelativeTo(null);
       setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-      // escuta enquanto o JFrame estiver em foco
-      addKeyListener(new WindowListener());
-   }
-}
-
-class WindowListener implements KeyListener {
-   int keyCodePressed, keyCodeReleased;
-   int newKeyCodePressed, newKeyCodeReleased;
-
-   // tecla é apertada
-   public void keyPressed(KeyEvent e) {
-      newKeyCodePressed = e.getKeyCode();
-      Client.out.println(e.getKeyChar()); // envia ao servidor
-
-   }
-
-   // tecla é solta
-   public void keyReleased(KeyEvent e) {
-      newKeyCodeReleased = e.getKeyCode();
-      Client.out.println(e.getKeyChar());
-   }
-
-   // tecla é digitada (confirmar se é isso mesmo)
-   public void keyTyped(KeyEvent e) {
-      if (e.getKeyCode() == KeyEvent.VK_B)
-         Client.out.println(e.getKeyChar());
+      addKeyListener(new Sender());
    }
 }

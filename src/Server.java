@@ -10,9 +10,8 @@ class Server {
       new Server(8080);
    }
    
-   static boolean logged[]; 
+   static boolean logged[] = new boolean[Sprite.qtePlayers]; 
    void initLogged() {
-      logged = new boolean[Sprite.qteMaxPlayers];
       for (int i = 0; i < logged.length; i++)
          logged[i] = false;
    }
@@ -50,7 +49,7 @@ class ClientManager extends Thread {
    private Scanner in = null;
    private PrintStream out = null;
    private int id;
-   private String inputLine, outputLine;
+   private String outputLine, inputLine;
 
    //de todos as classes (clientes)
    static List<PrintStream> listOutClients = new ArrayList<PrintStream>(); 
@@ -70,15 +69,15 @@ class ClientManager extends Thread {
       clientConnected();
       while (in.hasNextLine()) { //cliente está no servidor
          inputLine = in.nextLine();
-
-         // trata/valida a entrada do cliente antes de enviar para todos
-         outputLine = inputLine;
-
-         for (PrintStream outClient : listOutClients)
-            outClient.println(outputLine); //envia para todos os clientes
-
-         // if (outputLine.equals(""))
-         //    break;
+         System.out.println(inputLine);
+         
+         //valida a entrada do cliente
+         if (check(inputLine)) {
+            outputLine = inputLine;
+   
+            for (PrintStream outClient : listOutClients)
+               outClient.println(outputLine); //envia para todos os clientes
+         }
       }
       clientDesconnected();
    }
@@ -86,7 +85,7 @@ class ClientManager extends Thread {
       System.out.println("Jogador " + id + " se conectou.");
       listOutClients.add(out);
       Server.logged[id] = true;
-      out.println(id);
+      out.println(id); //envia id para o cliente
    }
    void clientDesconnected() {
       System.out.println("Jogador " + id + " se desconectou.");
@@ -99,5 +98,25 @@ class ClientManager extends Thread {
       } catch (IOException e) {
          e.printStackTrace();
       }
+   }
+
+   private int lastKeyCode;
+   boolean check(String inputLine) {
+      boolean ok = false;
+      String str[] = inputLine.split(" ");
+      int newKeyCode = Integer.parseInt(str[2]);
+
+      //impede envio do mesmo keyCode em sequência
+      if (str[0].equals("keyCodePressed")) {
+         ok = (newKeyCode != lastKeyCode)? true: false;
+         lastKeyCode = newKeyCode;
+      }
+      // else if ()
+
+
+
+      
+         
+      return ok;
    }
 }
