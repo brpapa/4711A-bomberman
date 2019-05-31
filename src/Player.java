@@ -1,17 +1,13 @@
-import java.awt.Graphics;
-import java.awt.event.KeyEvent;
-import java.lang.String;
+import java.awt.*;
+import javax.swing.*;
 
-import javax.swing.JPanel;
-
-
+//tanto para you quanto para enemy
 public class Player {
    int x, y;
-   String status, color;
+   String statusWithIndex, color;
    JPanel panel;
 
-   public StatusAnime threadStatus;
-   public MovePlayer threadMove;
+   public StatusAnimer thStatus;
 
    Player(int x0, int y0, String color, JPanel panel) throws InterruptedException {
       this.x = x0;
@@ -19,38 +15,35 @@ public class Player {
       this.color = color;
       this.panel = panel;
 
-      //executa tanto para you quanto para enemy
-      threadMove = new MovePlayer(this);
-      threadMove.start();
-      // threadMove.wait();
-      threadStatus = new StatusAnime(this, "wait");
-      threadStatus.start();
-      // threadStatus.wait();
+      thStatus = new StatusAnimer(this, "wait");
+      thStatus.start();
    }
 
    public void drawPlayer(Graphics g) {
       g.drawImage(
-         Sprite.ht.get(color + "/" + status),
+         Sprite.ht.get(color + "/" + statusWithIndex),
          x - Sprite.difWidth, y - Sprite.difHeight, 
          Sprite.widthPlayer, Sprite.heightPlayer, null
       );
-      panel.repaint(); //desnecessário, talvez??
    }
 }
 
-class StatusAnime extends Thread {
+class StatusAnimer extends Thread {
    Player p;
    String status;
+   int index;
 
-   StatusAnime(Player p, String status) {
+   StatusAnimer(Player p, String status) {
       this.p = p;
       this.status = status;
+      index = 0;
    }
    public void run() {
-      for (int i = 0; true; i = (++i) % Sprite.maxLoopStatus.get(status)) {
-         p.status = status + "-" + i;
-         p.panel.repaint();
+      while (true) {
+         p.statusWithIndex = status + "-" + index;
+         index = (++index) % Sprite.maxLoopStatus.get(status);
 
+         p.panel.repaint();
          try {
             Thread.sleep(120);
          } catch (InterruptedException e) {}
@@ -58,48 +51,10 @@ class StatusAnime extends Thread {
    }
    void setStatus(String status) {
       this.status = status;
+      index = 0;
    }
 }
 
-class MovePlayer extends Thread {
-   Player p;
-   int keyCode;
-   
-   MovePlayer(Player p) {
-      this.p = p;
-   }
-   public void run() {
-      while (true) {
-         switch (keyCode) {
-            case KeyEvent.VK_D: 
-               p.x += Sprite.RESIZE; 
-               p.threadStatus.setStatus("right");
-               break;
-            case KeyEvent.VK_A: 
-               p.x -= Sprite.RESIZE; 
-               p.threadStatus.setStatus("left");
-               break;
-            case KeyEvent.VK_W: 
-               p.y -= Sprite.RESIZE; 
-               p.threadStatus.setStatus("up");
-               break;
-            case KeyEvent.VK_S: 
-               p.y += Sprite.RESIZE; 
-               p.threadStatus.setStatus("down");
-               break;
-         }
-         p.panel.repaint();
-
-         try {
-            Thread.sleep(30);
-         } catch (InterruptedException e) {}
-      }
-   }
-
-   void setDirection(int keyCode) {
-      this.keyCode = keyCode;
-   }
-}
 
 class Coordinate {
    String img;

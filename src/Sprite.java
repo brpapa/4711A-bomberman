@@ -5,11 +5,12 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 
 //declaração de constantes
-class Sprite {
+public class Sprite {
    final static int RESIZE = 4;
    final static int LIN = 5, COL = 7; //SEMPRE IMPAR
    final static int width = 16 * RESIZE;
    final static int height = 16 * RESIZE;
+   final static int personFrameRate = 35; //taxa de atualização das coordenadas do personagem
 
    final static int widthPlayer = 22 * RESIZE;
    final static int heightPlayer = 33 * RESIZE;

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import javax.swing.*;
 
 public class Client {
    private Socket socket = null;
@@ -18,9 +19,9 @@ public class Client {
          Client.out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
          Client.in = new Scanner(socket.getInputStream()); //para receber do servidor
 
-         //PRIMEIRA LINHA QUE O O SERVIDOR envia é o ID DO PLAYER
+         //PRIMEIRA LINHA QUE O O SERVIDOR envia é para informar o ID DO PLAYER
          Client.id = Integer.parseInt(in.nextLine());
-         System.out.println("Bem vindo! Seu id é " + Client.id);
+         System.out.println("Bem vindo! Seu personagem é o " + Sprite.personColors[Client.id]);
 
          new Receiver().start();
       } catch (UnknownHostException e) {
@@ -28,5 +29,20 @@ public class Client {
       } catch (IOException e) {
          System.out.println("IOException: " + e);
       }
+   }
+}
+
+class Window extends JFrame {
+   Game panel;
+
+   Window() {
+      add(panel = new Game());
+      setTitle("Bomber-Man");
+      pack();
+      setVisible(true);
+      // setLocationRelativeTo(null);
+      setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+      addKeyListener(new Sender());
    }
 }
