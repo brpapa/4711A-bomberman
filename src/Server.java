@@ -4,8 +4,10 @@ import java.util.*;
 import java.awt.event.*;
 
 class Server {
-   static boolean logged[] = new boolean[Sprite.qtePlayers];
+   static boolean logged[] = new boolean[Const.qtePlayers];
    public static void main(String[] args) {
+      Const.setGrid();
+      Const.setSpawnCoordinates();
       new Server(8080);
    }
    void initLogged() {
@@ -41,55 +43,15 @@ class Server {
    }
 }
 
-//thread que dispara as coordenadas subsequentes aos clientes enquanto a tecla não é solta
-class DisparadorCoordenadas extends Thread {
-   boolean upPressed, rightPressed, leftPressed, downPressed;
-   int id, x, y, newX, newY;
-
-   DisparadorCoordenadas(int id) {
-      this.id = id;
-      upPressed = false;
-      downPressed = false;
-      rightPressed = false;
-      leftPressed = false;
-   }
-   public void run() {
-      while (true) {
-         if (upPressed || downPressed || rightPressed || leftPressed) {
-            if (upPressed)
-               newY = y - Sprite.RESIZE;
-            else if (downPressed)
-               newY = y + Sprite.RESIZE;
-            else if (rightPressed)
-               newX = x + Sprite.RESIZE;
-            else if (leftPressed)
-               newX = x - Sprite.RESIZE;
-            
-            for (PrintStream outClient : ClientManager.listOutClients) //para cada cliente logado
-               outClient.println(this.id + " " + "newCoordinate" + " " + newX + " " + newY);
-            x = newX; 
-            y = newY;
-            try {
-               sleep(Sprite.personFrameRate);
-            } catch(InterruptedException e) {}
-         }
-         try {
-            sleep(1);
-         } catch(InterruptedException e) {}
-      }
-   }
-}
-
 //cada cliente tem sua thread
 class ClientManager extends Thread {
+   static List<PrintStream> listOutClients = new ArrayList<PrintStream>(); //de todos as classes (clientes)
+
    private Socket clientSocket = null;
    private Scanner in = null;
    private PrintStream out = null;
    private int id;
    private String outputLine, inputLine;
-
-   //de todos as classes (clientes)
-   static List<PrintStream> listOutClients = new ArrayList<PrintStream>(); 
 
    DisparadorCoordenadas thDisp;
 
@@ -101,73 +63,69 @@ class ClientManager extends Thread {
       try {
          this.in = new Scanner(clientSocket.getInputStream()); // para receber do cliente
          this.out = new PrintStream(clientSocket.getOutputStream(), true); // para enviar ao cliente
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
+      } catch (IOException e) {}
    }
 
    public void run() {
       clientConnected();
-      while (in.hasNextLine()) { //conexão com o cliente this.id
+      while (in.hasNextLine()) { // conexão com o cliente this.id
          inputLine = in.nextLine();
-         System.out.format("%s: %s\n", Sprite.personColors[id], inputLine);
+         System.out.format("%s: %s\n", Const.personColors[id], inputLine);
          
-         if (!ehCoordenada(inputLine)) {
-            outputLine = inputLine;
-            for (PrintStream outClient : listOutClients)
-               outClient.println(this.id + " " + outputLine); //envia para todos os clientes
-         }
+         outputLine = trataEntrada(inputLine);
+         for (PrintStream outClient : listOutClients)
+            outClient.println(this.id + " " + outputLine);
       }
       clientDesconnected();
    }
 
-   boolean ehCoordenada(String inputLine) {
-      String aux[] = inputLine.split(" ");
+   String trataEntrada(String inputLine) {
+      String str[] = inputLine.split(" ");
 
-      if (aux[0].equals("pressed")) {
-         switch (Integer.parseInt(aux[1])) {
-            case KeyEvent.VK_W:
-               thDisp.upPressed = true;
+      if (str[0].equals("keyCodePressed")) {
+         thDisp.setCoordinates(Integer.parseInt(str[2]), Integer.parseInt(str[3]));
+
+         //MELHORAR CRIANDO UMA TABELA HASH, tipo KeyEvent.VK_W -> "up"
+         switch (Integer.parseInt(str[1])) {
+            case KeyEvent.VK_W: 
+               thDisp.setUp();
+               return "newStatus up";
+            case KeyEvent.VK_S: 
+               thDisp.setDown();
+               return "newStatus down";
+            case KeyEvent.VK_D: 
+               thDisp.setRight();
+               return "newStatus right";
+            case KeyEvent.VK_A: 
+               thDisp.setLeft();
+               return "newStatus left";
+         }
+      }
+      else if (str[0].equals("keyCodeReleased")) {
+         switch (Integer.parseInt(str[1])) {
+            case KeyEvent.VK_W: 
+               thDisp.upPressed = false; 
                break;
-            case KeyEvent.VK_S:
-               thDisp.downPressed = true;
+            case KeyEvent.VK_S: 
+               thDisp.downPressed = false; 
                break;
-            case KeyEvent.VK_D:
-               thDisp.rightPressed = true;
+            case KeyEvent.VK_D: 
+               thDisp.rightPressed = false; 
                break;
-            case KeyEvent.VK_A:
-               thDisp.leftPressed = true;
+            case KeyEvent.VK_A: 
+               thDisp.leftPressed = false; 
                break;
          }
-         thDisp.x = Integer.parseInt(aux[2]);
-         thDisp.y = Integer.parseInt(aux[3]);
-         return true;
+         return "stopStatusUpdate";
       }
-      if (aux[0].equals("released")) {
-         switch (Integer.parseInt(aux[1])) {
-            case KeyEvent.VK_W:
-               thDisp.upPressed = false;
-               break;
-            case KeyEvent.VK_S:
-               thDisp.downPressed = false;
-               break;
-            case KeyEvent.VK_D:
-               thDisp.rightPressed = false;
-               break;
-            case KeyEvent.VK_A:
-               thDisp.leftPressed = false;
-               break;
-         }
-         return true;
-      }
-      return false;
+      return "void";
    }
 
    void clientConnected() {
       System.out.println("Jogador " + id + " se conectou.");
       listOutClients.add(out);
       Server.logged[id] = true;
-      out.println(id); //informa qual o id do cliente
+      out.println(id); //informa qual o id ao cliente
    }
    void clientDesconnected() {
       System.out.println("Jogador " + id + " se desconectou.");
@@ -177,8 +135,93 @@ class ClientManager extends Thread {
          in.close();
          out.close();
          clientSocket.close();
-      } catch (IOException e) {
-         e.printStackTrace();
+      } catch (IOException e) {}
+   }
+}
+
+//thread que dispara as novas coordenadas aos clientes enquanto a tecla não é solta
+class DisparadorCoordenadas extends Thread {
+   boolean upPressed, rightPressed, leftPressed, downPressed;
+   int id, x, y;
+
+   DisparadorCoordenadas(int id) {
+      this.id = id;
+      this.x = Const.spawn[id].getX() - Const.varX;
+      this.y = Const.spawn[id].getY() - Const.varY;
+      upPressed = false;
+      downPressed = false;
+      rightPressed = false;
+      leftPressed = false;
+   }
+   public void run() {
+      int newX = x, newY = y;
+      while (true) {
+         if (upPressed || downPressed || rightPressed || leftPressed) {
+            if (upPressed)
+               newY = y - Const.RESIZE;
+            else if (downPressed)
+               newY = y + Const.RESIZE;
+            else if (rightPressed)
+               newX = x + Const.RESIZE;
+            else if (leftPressed)
+               newX = x - Const.RESIZE;
+
+            if (newCoordinateIsValid(newX, newY)) {
+               for (PrintStream outClient : ClientManager.listOutClients) // para cada cliente logado
+                  outClient.println(this.id + " " + "newCoordinate" + " " + newX + " " + newY);
+               x = newX;
+               y = newY;
+            }
+            else {
+               newX = x;
+               newY = y;
+            }
+
+            try {
+               sleep(Const.rateCoordinatesUpdate);
+            } catch (InterruptedException e) {}
+         }
+         try {
+            sleep(0);
+         } catch (InterruptedException e) {}
       }
+   }
+   boolean newCoordinateIsValid(int newX, int newY) {
+      newX += Const.varX; //para facilitar a comparação com as coordenadas das images do mapa
+      newY += Const.varY;
+      if (newX < Const.grid[1][1].getX()-Const.RESIZE || newX > Const.grid[Const.LIN-2][Const.COL-2].getX()+Const.RESIZE)
+         return false;
+      if (newY < Const.grid[1][1].getY()-Const.RESIZE || newY > Const.grid[Const.LIN-2][Const.COL-2].getY()+Const.RESIZE)
+         return false;
+
+      return true;
+   }
+   void setCoordinates(int x, int y) {
+      this.x = x;
+      this.y = y;
+   }
+   void setUp() {
+      upPressed = true;
+      downPressed = false;
+      rightPressed = false;
+      leftPressed = false;
+   }
+   void setDown() {
+      upPressed = false;
+      downPressed = true;
+      rightPressed = false;
+      leftPressed = false;
+   }
+   void setRight() {
+      upPressed = false;
+      downPressed = false;
+      rightPressed = true;
+      leftPressed = false;
+   }
+   void setLeft() {
+      upPressed = false;
+      downPressed = false;
+      rightPressed = false;
+      leftPressed = true;
    }
 }

@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -16,12 +17,12 @@ public class Client {
    Client(String host, int porta) {
       try {
          this.socket = new Socket(host, porta);
-         Client.out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
-         Client.in = new Scanner(socket.getInputStream()); //para receber do servidor
+         out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
+         in = new Scanner(socket.getInputStream()); //para receber do servidor
 
          //PRIMEIRA LINHA QUE O O SERVIDOR envia é para informar o ID DO PLAYER
-         Client.id = Integer.parseInt(in.nextLine());
-         System.out.println("Bem vindo! Seu personagem é o " + Sprite.personColors[Client.id]);
+         id = Integer.parseInt(in.nextLine());
+         System.out.println("Bem vindo! Seu personagem é o " + Const.personColors[Client.id]);
 
          new Receiver().start();
       } catch (UnknownHostException e) {
@@ -33,10 +34,8 @@ public class Client {
 }
 
 class Window extends JFrame {
-   Game panel;
-
    Window() {
-      add(panel = new Game());
+      add(new Panel());
       setTitle("Bomber-Man");
       pack();
       setVisible(true);

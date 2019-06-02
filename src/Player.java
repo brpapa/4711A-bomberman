@@ -6,25 +6,18 @@ public class Player {
    int x, y;
    String statusWithIndex, color;
    JPanel panel;
+   StatusAnimer thStatus;
 
-   public StatusAnimer thStatus;
-
-   Player(int x0, int y0, String color, JPanel panel) throws InterruptedException {
-      this.x = x0;
-      this.y = y0;
-      this.color = color;
+   Player(int id, JPanel panel) throws InterruptedException {
+      this.x = Const.spawn[id].getX() - Const.varX;
+      this.y = Const.spawn[id].getY() - Const.varY;
+      this.color = Const.personColors[id];
       this.panel = panel;
-
-      thStatus = new StatusAnimer(this, "wait");
-      thStatus.start();
+      (thStatus = new StatusAnimer(this, "wait")).start();
    }
 
    public void drawPlayer(Graphics g) {
-      g.drawImage(
-         Sprite.ht.get(color + "/" + statusWithIndex),
-         x - Sprite.difWidth, y - Sprite.difHeight, 
-         Sprite.widthPlayer, Sprite.heightPlayer, null
-      );
+      g.drawImage(Const.ht.get(color + "/" + statusWithIndex), x, y, Const.widthPlayer, Const.heightPlayer, null);
    }
 }
 
@@ -32,49 +25,33 @@ class StatusAnimer extends Thread {
    Player p;
    String status;
    int index;
+   boolean loop;
 
-   StatusAnimer(Player p, String status) {
+   StatusAnimer(Player p, String initialStatus) {
       this.p = p;
-      this.status = status;
+      this.status = initialStatus;
       index = 0;
+      loop = true;
    }
    public void run() {
       while (true) {
          p.statusWithIndex = status + "-" + index;
-         index = (++index) % Sprite.maxLoopStatus.get(status);
+         if (loop)
+            index = (++index) % Const.maxLoopStatus.get(status);
 
          p.panel.repaint();
          try {
-            Thread.sleep(120);
+            Thread.sleep(Const.rateStatusUpdate);
          } catch (InterruptedException e) {}
       }
    }
    void setStatus(String status) {
       this.status = status;
+      index = 1;
+      loop = true;
+   }
+   void stopStatusUpdate() {
+      loop = false;
       index = 0;
-   }
-}
-
-
-class Coordinate {
-   String img;
-   public int x, y;
-
-   Coordinate(int x, int y) {
-      this.x = x;
-      this.y = y;
-   }
-
-   public void setX(int x) {
-      this.x = x;
-   }
-   public void setY(int y) {
-      this.y = y;
-   }
-   public int getX() {
-      return this.x;
-   }
-   public int getY() {
-      return this.y;
    }
 }
