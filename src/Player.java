@@ -16,7 +16,7 @@ public class Player {
       (thStatus = new StatusAnimer(this, "wait")).start();
    }
 
-   public void drawPlayer(Graphics g) {
+   public void draw(Graphics g) {
       g.drawImage(Const.ht.get(color + "/" + statusWithIndex), x, y, Const.widthPlayer, Const.heightPlayer, null);
    }
 }

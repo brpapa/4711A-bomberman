@@ -2,50 +2,43 @@ import java.awt.*;
 import javax.swing.*;
 
 public class Game extends JPanel {
-   static Player you, enemy;
-
+   static Player you, enemy1, enemy2, enemy3;
    Game() {
-      Sprite.readAllImages();
-      Sprite.setGrid();
-      Sprite.setMaxLoopStatus();
-      Sprite.setSpawnCoordinates();
-      setPreferredSize(new Dimension(Sprite.COL * Sprite.width, Sprite.LIN * Sprite.height));
+      setPreferredSize(new Dimension(Const.COL * Const.sizeGrid, Const.LIN * Const.sizeGrid));
 
-      // passa a intância de JPanel pelo construtor para poder usar repaint()
-      Map.init(this);
       try {
-         initPlayers();
-      } catch (InterruptedException e) {
-         e.printStackTrace();
-      }
-   }
-   
-   //inicia os jogadores com as suas respectivas coordenadas iniciais e cores
-   private void initPlayers() throws InterruptedException {
-      you = new Player(
-         Sprite.spawn[Client.id].getX(), 
-         Sprite.spawn[Client.id].getY(), 
-         Sprite.personColors[Client.id], this
-      );
-      enemy = new Player(
-         Sprite.spawn[(Client.id + 1) % Sprite.qtePlayers].getX(),
-         Sprite.spawn[(Client.id + 1) % Sprite.qtePlayers].getY(),
-         Sprite.personColors[(Client.id + 1) % Sprite.qtePlayers], this
-      );
+         you = new Player(Client.id, this);
+         enemy1 = new Player((Client.id+1)%Const.qtePlayers, this);
+         enemy2 = new Player((Client.id+2)%Const.qtePlayers, this);
+         enemy3 = new Player((Client.id+3)%Const.qtePlayers, this);
+      } catch (InterruptedException e) {}
    }
 
    //desenha os componentes, chamada por paint() e repaint()
    public void paintComponent(Graphics g) {
       super.paintComponent(g);
+      drawFullMap(g);
 
-      //ESTÁ DESENHANDO A BASE DO MAPA TODA VEZ, PARA ARRUMAR ISSO CARREGAR UM PANEL EM BAIXO DESSE, O QUAL NUNCA SERÁ ATUALIZADO
-      Map.drawFloor(g);
-      Map.drawWalls(g);
-      Game.enemy.drawPlayer(g);
-      Game.you.drawPlayer(g);
+      enemy1.draw(g);
+      enemy2.draw(g);
+      enemy3.draw(g);
+      you.draw(g);
       
-      System.out.format("%s: %s [%04d, %04d]\t", Game.you.color, Game.you.statusWithIndex, Game.you.x, Game.you.y);
-      System.out.format("%s: %s [%04d, %04d]\n", Game.enemy.color, Game.enemy.statusWithIndex, Game.enemy.x, Game.enemy.y);
+      System.out.format("%s: %s [%04d, %04d]\n", Game.you.color, Game.you.statusWithIndex, Game.you.x, Game.you.y);
       Toolkit.getDefaultToolkit().sync();
+   }
+      
+   void drawFullMap(Graphics g) {
+      for (int i = 0; i < Const.LIN; i++)
+         for (int j = 0; j < Const.COL; j++)
+            g.drawImage(
+               Const.ht.get(Const.grid[i][j].img), 
+               Const.grid[i][j].getX(), Const.grid[i][j].getY(), 
+               Const.sizeGrid, Const.sizeGrid, null
+            );
+   }
+
+   static void setGrid(String keyWord, int l, int c) {
+      Const.grid[l][c].img = keyWord;
    }
 }

@@ -5,38 +5,22 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 
 public class Const {
+   final static int qtePlayers = 4;
+
    final static int RESIZE = 4;
-   final static int LIN = 5, COL = 9; //SEMPRE IMPAR
-   final static int width = 16 * RESIZE;
-   final static int height = 16 * RESIZE;
+   final static int LIN = 9, COL = 9; //SEMPRE IMPAR
+   final static int sizeGrid = 16 * RESIZE;
+   final static int widthPlayer = 22 * RESIZE;
+   final static int heightPlayer = 33 * RESIZE;
 
    final static int rateCoordinatesUpdate = 35;
    final static int rateStatusUpdate = 115;
 
-   final static int widthPlayer = 22 * RESIZE;
-   final static int heightPlayer = 33 * RESIZE;
    //diferença entre img do mapa e do personagem
    final static int varX = 3 * RESIZE; 
    final static int varY = 16 * RESIZE;
 
-   final static int qtePlayers = 4;
-
-   final static Coordinate grid[][] = new Coordinate[LIN][COL];
-   static void setGrid() {
-      for (int i = 0; i < LIN; i++)
-         for (int j = 0; j < COL; j++)
-            grid[i][j] = new Coordinate(width * j, height * i);
-      /*
-             0         1         2         3         4         5         6         7         8
-      0  [000,000] [064,000] [128,000] [192,000] [256,000] [320,000] [384,000] [448,000] [512,000] 
-      1  [000,064] [064,064] [128,064] [192,064] [256,064] [320,064] [384,064] [448,064] [512,064]
-      2  [000,128] [064,128] [128,128] [192,128] [256,128] [320,128] [384,128] [448,128] [512,128] 
-      3  [000,192] [064,192] [128,192] [192,192] [256,192] [320,192] [384,192] [448,192] [512,192]
-      4  [000,256] [064,256] [128,256] [192,256] [256,256] [320,256] [384,256] [448,256] [512,256]
-      */
-   }
-
-   final static String personColors[] = {
+   final static String personColors[] = { 
       "white", 
       "black", 
       "red", 
@@ -45,11 +29,42 @@ public class Const {
    final static Coordinate spawn[] = new Coordinate[4];
    static void setSpawnCoordinates() {
       spawn[0] = grid[1][1];
-      spawn[1] = grid[LIN-2][COL-2];
-      spawn[2] = grid[LIN-2][1];
-      spawn[3] = grid[1][COL-2];
+      spawn[1] = grid[LIN - 2][COL - 2];
+      spawn[2] = grid[LIN - 2][1];
+      spawn[3] = grid[1][COL - 2];
    }
 
+   //DEVE RODAR APENAS DO LADO DO SERVIDOR:
+   static Coordinate grid[][] = new Coordinate[LIN][COL];
+   static void initGrid() {
+      for (int i = 0; i < LIN; i++)
+         for (int j = 0; j < COL; j++)
+            grid[i][j] = new Coordinate(sizeGrid * j, sizeGrid * i, "floor-1");
+
+      // paredes laterais
+      for (int j = 1; j < Const.COL - 1; j++)
+         grid[0][j].img = "wall-center";
+      for (int j = 1; j < Const.COL - 1; j++)
+         grid[LIN-1][j].img = "wall-center";
+
+      for (int i = 1; i < Const.LIN - 1; i++)
+         grid[i][0].img = "wall-center";
+      for (int i = 1; i < Const.LIN - 1; i++)
+         grid[i][COL-1].img = "wall-center";
+
+      grid[0][0].img = "wall-up-left";
+      grid[0][COL-1].img = "wall-up-right";
+      grid[LIN-1][0].img = "wall-down-left";
+      grid[LIN-1][COL-1].img = "wall-down-right";
+
+      // paredes centrais
+      for (int i = 2; i < Const.LIN - 2; i++)
+         for (int j = 2; j < Const.COL - 2; j++)
+            if (i % 2 == 0 && j % 2 == 0)
+               grid[i][j].img = "wall-center";
+   }
+
+   //DO CLIENTE:
    final static Hashtable<String, Image> ht = new Hashtable<String, Image>();
    //COLOCAR NA ORDEM DO SPRITESHEET
    final static String mapKeyWords[] = { 
@@ -114,9 +129,10 @@ class Coordinate {
    String img;
    public int x, y;
 
-   Coordinate(int x, int y) {
+   Coordinate(int x, int y, String img) {
       this.x = x;
       this.y = y;
+      this.img = img;
    }
 
    public void setX(int x) {

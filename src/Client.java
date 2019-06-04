@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -9,6 +8,7 @@ public class Client {
    static PrintStream out = null;
    static Scanner in = null;
    static int id;
+
    public static void main(String[] args) {
       new Client("127.0.0.1", 8080);
       new Window();
@@ -20,9 +20,14 @@ public class Client {
          out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
          in = new Scanner(socket.getInputStream()); //para receber do servidor
 
-         //PRIMEIRA LINHA QUE O O SERVIDOR envia é para informar o ID DO PLAYER
-         id = Integer.parseInt(in.nextLine());
+         //recebe configurações iniciais do servidor
+         id = in.nextInt();
          System.out.println("Bem vindo! Seu personagem é o " + Const.personColors[Client.id]);
+
+         Const.initGrid();
+         // for (int i = 0; i < Const.LIN; i++)
+         //    for (int j = 0; j < Const.COL; j++)
+         //       Const.grid[i][j].img = in.nextLine();
 
          new Receiver().start();
       } catch (UnknownHostException e) {
@@ -33,9 +38,16 @@ public class Client {
    }
 }
 
+//IDEAL: CLIENTE NAO DEVERIA ACESSAR AS CONSTANTES, TUDO DEVE SER ENVIADO PELO SERVIDOR
+//RECEBER ASSIM QUE O CLIENTE LOGA TODAS AS SUAS CONFIGURACÕES INICIAIS
+
 class Window extends JFrame {
    Window() {
-      add(new Panel());
+      Const.readAllImages();
+      Const.setMaxLoopStatus();
+      Const.setSpawnCoordinates();
+
+      add(new Game());
       setTitle("Bomber-Man");
       pack();
       setVisible(true);

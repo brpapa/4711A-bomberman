@@ -6,9 +6,9 @@ public class Sender extends KeyAdapter {
    
    public void keyPressed(KeyEvent e) {
       if (e.getKeyCode() == KeyEvent.VK_B)
-         Client.out.println("newBomb" + " " + Panel.you.x + " " + Panel.you.y);
+         Client.out.println("pressedB" + " " + Game.you.x + " " + Game.you.y);
       else if (isNewKeyCode(e.getKeyCode()))
-         Client.out.println("keyCodePressed" + " " + e.getKeyCode() + " " + Panel.you.x + " " + Panel.you.y);
+         Client.out.println("keyCodePressed" + " " + e.getKeyCode() + " " + Game.you.x + " " + Game.you.y);
    }
       
    public void keyReleased(KeyEvent e) {
