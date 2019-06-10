@@ -36,6 +36,10 @@ public class Receiver extends Thread {
          else if (str.equals("oneMoreBombAvailable")) {
             p.numberOfBombs++;
          }
+         else if (str.equals("playerDead")) {
+            p.alive = false;
+            p.thStatus.setStatus("dead");
+         }
       }
       Client.in.close();
    }

@@ -11,7 +11,8 @@ public class Client {
    static int id;
 
    final static int rateStatusUpdate = 115;
-   static Coordinate map[][];
+   static Coordinate map[][] = new Coordinate[Const.LIN][Const.COL];;
+   static Coordinate spawn[] = new Coordinate[Const.qtePlayers];
 
    Client(String host, int porta) {
       try {
@@ -32,10 +33,14 @@ public class Client {
       id = in.nextInt();
       System.out.println("Bem vindo! Seu personagem é o " + Sprite.personColors[Client.id]);
 
-      map = new Coordinate[Const.LIN][Const.COL];
+      //mapa
       for (int i = 0; i < Const.LIN; i++)
          for (int j = 0; j < Const.COL; j++)
             map[i][j] = new Coordinate(Const.sizeGrid * j, Const.sizeGrid * i, in.next());
+      
+      //coordenadas inicias de todos os jogadores
+      for (int i = 0; i < Const.qtePlayers; i++)
+         Client.spawn[i] = new Coordinate(in.nextInt(), in.nextInt());
    }
    
    public static void main(String[] args) {
@@ -48,7 +53,6 @@ class Window extends JFrame {
    Window() {
       Sprite.readAllImages();
       Sprite.setMaxLoopStatus();
-      Sprite.setSpawnCoordinates();
       
       add(new Game(Const.COL*Const.sizeGrid, Const.LIN*Const.sizeGrid));
       setTitle("BomberMan");

@@ -16,12 +16,12 @@ class Const {
    final static int ratePlayerStatusUpdate = 115;
    final static int rateCoordinatesUpdate = 27;
 
-   final static Coordinate spawn[] = new Coordinate[4];
-   static void setSpawnCoordinates() {
-      spawn[0] = map[1][1];
-      spawn[1] = map[LIN-2][COL-2];
-      spawn[2] = map[LIN-2][1];
-      spawn[3] = map[1][COL-2];
+   final static Coordinate playerCoordinate[] = new Coordinate[4];
+   static void setPlayerCoordinates() {
+      playerCoordinate[0] = new Coordinate(map[1][1].getX() - varX, map[1][1].getY() - varY);
+      playerCoordinate[1] = new Coordinate(map[LIN-2][COL-2].getX() - varX, map[LIN-2][COL-2].getY() - varY);
+      playerCoordinate[2] = new Coordinate(map[LIN-2][1].getX() - varX, map[LIN-2][1].getY() - varY);
+      playerCoordinate[3] = new Coordinate(map[1][COL-2].getX() - varX, map[1][COL-2].getY() - varY);
    }
 
    static Coordinate map[][] = new Coordinate[LIN][COL];

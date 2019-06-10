@@ -6,7 +6,7 @@ import java.awt.event.*;
 class Server {
    public static void main(String[] args) {
       Const.initMap();
-      Const.setSpawnCoordinates();
+      Const.setPlayerCoordinates();
       new Server(8080);
    }
    static boolean logged[] = new boolean[Const.qtePlayers];
@@ -119,10 +119,14 @@ class ClientManager extends Thread {
 
    void sendInitialSettings() {
       out.print(id);
-      // out.print(" " + Const.LIN + " " + Const.COL);
+
       for (int i = 0; i < Const.LIN; i++)
          for (int j = 0; j < Const.COL; j++)
             out.print(" " + Const.map[i][j].img);
+
+      for (int i = 0; i < Const.qtePlayers; i++)
+         out.print(" " + Const.playerCoordinate[i].getX() + " " + Const.playerCoordinate[i].getY());
+         
       out.print("\n");
    }
 

@@ -8,11 +8,13 @@ public class Player {
    JPanel panel;
    StatusAnimer thStatus;
    int numberOfBombs;
+   boolean alive;
 
    Player(int id, JPanel panel) throws InterruptedException {
-      this.x = Sprite.spawn[id].getX() - Const.varX;
-      this.y = Sprite.spawn[id].getY() - Const.varY;
+      this.x = Client.spawn[id].getX();
+      this.y = Client.spawn[id].getY();
       this.color = Sprite.personColors[id];
+      this.alive = false;
       this.panel = panel;
       this.numberOfBombs = 1; //para 2 bombas, é preciso tratar cada bomba em uma thread diferente
 
@@ -54,5 +56,46 @@ class StatusAnimer extends Thread {
    void stopStatusUpdate() {
       loop = false;
       index = 0;
+   }
+}
+
+class Coordinate {
+   int x, y;
+   String img;
+   boolean playerOn[] = new boolean[Const.qtePlayers];
+
+   Coordinate(int x, int y) {
+      this.x = x;
+      this.y = y;
+   }
+   Coordinate(int x, int y, String img) {
+      this.x = x;
+      this.y = y;
+      this.img = img;
+      for (int i = 0; i < Const.qtePlayers; i++)
+         this.playerOn[i] = false; // i: id do player
+   }
+
+   boolean containsAnyPlayer() {
+      for (boolean i : playerOn)
+         if (i == true)
+            return true;
+      return false;
+   }
+
+   public void setX(int x) {
+      this.x = x;
+   }
+
+   public void setY(int y) {
+      this.y = y;
+   }
+
+   public int getX() {
+      return this.x;
+   }
+
+   public int getY() {
+      return this.y;
    }
 }
