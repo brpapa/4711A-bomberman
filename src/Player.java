@@ -7,17 +7,20 @@ public class Player {
    String statusWithIndex, color;
    JPanel panel;
    StatusAnimer thStatus;
+   int numberOfBombs;
 
    Player(int id, JPanel panel) throws InterruptedException {
-      this.x = Const.spawn[id].getX() - Const.varX;
-      this.y = Const.spawn[id].getY() - Const.varY;
-      this.color = Const.personColors[id];
+      this.x = Sprite.spawn[id].getX() - Const.varX;
+      this.y = Sprite.spawn[id].getY() - Const.varY;
+      this.color = Sprite.personColors[id];
       this.panel = panel;
+      this.numberOfBombs = 1; //para 2 bombas, é preciso tratar cada bomba em uma thread diferente
+
       (thStatus = new StatusAnimer(this, "wait")).start();
    }
 
    public void draw(Graphics g) {
-      g.drawImage(Const.ht.get(color + "/" + statusWithIndex), x, y, Const.widthPlayer, Const.heightPlayer, null);
+      g.drawImage(Sprite.ht.get(color + "/" + statusWithIndex), x, y, Const.widthPlayer, Const.heightPlayer, null);
    }
 }
 
@@ -37,12 +40,10 @@ class StatusAnimer extends Thread {
       while (true) {
          p.statusWithIndex = status + "-" + index;
          if (loop)
-            index = (++index) % Const.maxLoopStatus.get(status);
+            index = (++index) % Sprite.maxLoopStatus.get(status);
 
          p.panel.repaint();
-         try {
-            Thread.sleep(Const.rateStatusUpdate);
-         } catch (InterruptedException e) {}
+         try {Thread.sleep(Const.ratePlayerStatusUpdate);} catch (InterruptedException e) {}
       }
    }
    void setStatus(String status) {

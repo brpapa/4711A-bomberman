@@ -29,9 +29,12 @@ public class Receiver extends Thread {
          else if (str.equals("stopStatusUpdate")) {
             p.thStatus.stopStatusUpdate();
          }
-         else if (str.equals("gridMap")) {
-            Game.setGrid(Client.in.next(), Client.in.nextInt(), Client.in.nextInt());
+         else if (str.equals("mapUpdate")) {
+            Game.changeMap(Client.in.next(), Client.in.nextInt(), Client.in.nextInt());
             p.panel.repaint();
+         }
+         else if (str.equals("oneMoreBombAvailable")) {
+            p.numberOfBombs++;
          }
       }
       Client.in.close();

@@ -3,9 +3,9 @@ import javax.swing.*;
 
 public class Game extends JPanel {
    static Player you, enemy1, enemy2, enemy3;
-   Game() {
-      setPreferredSize(new Dimension(Const.COL * Const.sizeGrid, Const.LIN * Const.sizeGrid));
 
+   Game(int width, int height) {
+      setPreferredSize(new Dimension(width, height));
       try {
          you = new Player(Client.id, this);
          enemy1 = new Player((Client.id+1)%Const.qtePlayers, this);
@@ -24,7 +24,7 @@ public class Game extends JPanel {
       enemy3.draw(g);
       you.draw(g);
       
-      System.out.format("%s: %s [%04d, %04d]\n", Game.you.color, Game.you.statusWithIndex, Game.you.x, Game.you.y);
+      // System.out.format("%s: %s [%04d, %04d]\n", Game.you.color, Game.you.statusWithIndex, Game.you.x, Game.you.y);;
       Toolkit.getDefaultToolkit().sync();
    }
       
@@ -32,13 +32,13 @@ public class Game extends JPanel {
       for (int i = 0; i < Const.LIN; i++)
          for (int j = 0; j < Const.COL; j++)
             g.drawImage(
-               Const.ht.get(Const.grid[i][j].img), 
-               Const.grid[i][j].getX(), Const.grid[i][j].getY(), 
+               Sprite.ht.get(Client.map[i][j].img), 
+               Client.map[i][j].getX(), Client.map[i][j].getY(), 
                Const.sizeGrid, Const.sizeGrid, null
             );
    }
 
-   static void setGrid(String keyWord, int l, int c) {
-      Const.grid[l][c].img = keyWord;
+   static void changeMap(String keyWord, int l, int c) {
+      Client.map[l][c].img = keyWord;
    }
 }
