@@ -1,143 +1,116 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.awt.event.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+class PlayerData {
+   boolean logged, alive;
+   int x, y; //coordenada atual
+   int numberOfBombs;
+
+   PlayerData(int x, int y) {
+      this.x = x;
+      this.y = y;
+      this.logged = false;
+      this.alive = false;
+      this.numberOfBombs = 1; // para 2 bombas, é preciso tratar cada bomba em uma thread diferente
+   }
+}
 
 class Server {
-   public static void main(String[] args) {
-      Const.initMap();
-      Const.setPlayerCoordinates();
-      new Server(8080);
+   static PlayerData player[] = new PlayerData[Const.QTY_PLAYERS];
+   static Coordinate map[][] = new Coordinate[Const.LIN][Const.COL];
+   
+   Server(int portNumber) {
+      ServerSocket ss;
+
+      setMap();
+      setPlayerData();
+      
+      try {
+         System.out.print("Abrindo a porta " + portNumber + "...");
+         ss = new ServerSocket(portNumber); // socket escuta a porta
+         System.out.print(" ok\n");
+
+         for (int id = 0; !loggedIsFull(); id = (++id)%Const.QTY_PLAYERS)
+            if (!player[id].logged) {
+               Socket clientSocket = ss.accept();
+               new ClientManager(clientSocket, id).start();
+            }
+         //nao encerra o servidor enquanto a thread dos clientes continuam executando
+      } catch (IOException e) {
+         System.out.println(" erro: " + e + "\n");
+         System.exit(1);
+      }
    }
-   static boolean logged[] = new boolean[Const.qtePlayers];
-   void initLogged() {
-      for (int i = 0; i < logged.length; i++)
-         logged[i] = false;
-   }
+
    boolean loggedIsFull() {
-      for (int i = 0; i < logged.length; i++)
-         if (logged[i] == false)
+      for (int i = 0; i < Const.QTY_PLAYERS; i++)
+         if (player[i].logged == false)
             return false;
       return true;
    }
    
-   Server(int portNumber) {
-      initLogged();
-      try {
-         System.out.println("Iniciando servidor...");
-         ServerSocket ss = new ServerSocket(portNumber); // socket escuta a porta
-         System.out.println("Porta " + portNumber + " aberta.");
-
-         //PROBLEMA COM SERVIDOR LOTADO!
-         for (int i = 0; !loggedIsFull(); i = (++i)%logged.length)
-            if (!logged[i]) {
-               Socket clientSocket = ss.accept();
-               new ClientManager(clientSocket, i).start(); //trata o cliente em uma nova instância da classe/thread
-            }
-         //nao encerra o servidor enquanto a thread dos clientes continuam executando
-
-      } catch (IOException e) {
-         System.out.println("IOException: " + e);
-         System.exit(1);
-      }
-   }
-}
-
-class ClientManager extends Thread {
-   static List<PrintStream> listOutClients = new ArrayList<PrintStream>();
-
-   private Socket clientSocket = null;
-   private Scanner in = null;
-   private PrintStream out = null;
-   private int id;
-
-   CoordinatesThrower ct;
-   MapThrower mt;
-
-   ClientManager(Socket clientSocket, int id) {
-      this.id = id;
-      this.clientSocket = clientSocket;
-      (ct = new CoordinatesThrower(this.id)).start();
-      (mt = new MapThrower(this.id)).start();
-
-      try {
-         this.in = new Scanner(clientSocket.getInputStream()); // para receber do cliente
-         this.out = new PrintStream(clientSocket.getOutputStream(), true); // para enviar ao cliente
-      } catch (IOException e) {}
-   }
-
-   public void run() {
-      String outputLine;
-      //envia uma única string com as configurações iniciais do cliente
-      sendInitialSettings(); 
-      clientConnected();
-      while (in.hasNextLine()) { 
-         //conexão estabelecida com o cliente this.id
-         outputLine = convertClientInput(in.nextLine());
-
-         for (PrintStream outClient : listOutClients)
-            outClient.println(this.id + " " + outputLine);
-      }
-      clientDesconnected();
-   }
-
-   String convertClientInput(String inputLine) {
-      String str[] = inputLine.split(" ");
-
-      if (str[0].equals("keyCodePressed")) {
-         ct.x = Integer.parseInt(str[2]);
-         ct.y = Integer.parseInt(str[3]);
-
-         switch (Integer.parseInt(str[1])) {
-            case KeyEvent.VK_W: ct.setUp();    return "newStatus up";
-            case KeyEvent.VK_S: ct.setDown();  return "newStatus down";
-            case KeyEvent.VK_D: ct.setRight(); return "newStatus right";
-            case KeyEvent.VK_A: ct.setLeft();  return "newStatus left";
-         }
-      }
-      else if (str[0].equals("keyCodeReleased")) {
-         switch (Integer.parseInt(str[1])) {
-            case KeyEvent.VK_W: ct.up = false;      return "stopStatusUpdate";
-            case KeyEvent.VK_S: ct.down = false;    return "stopStatusUpdate";
-            case KeyEvent.VK_D: ct.right = false;   return "stopStatusUpdate";
-            case KeyEvent.VK_A: ct.left = false;    return "stopStatusUpdate";
-         }
-         return "void";
-      }
-      else if (str[0].equals("pressedB")) {
-         mt.setBombPlanted(Integer.parseInt(str[1]), Integer.parseInt(str[2]));
-         return "void";
-      }
-      return "void";
-   }
-
-   void clientConnected() {
-      System.out.println("Jogador " + id + " se conectou.");
-      listOutClients.add(out);
-      Server.logged[id] = true;
-   }
-
-   void sendInitialSettings() {
-      out.print(id);
-
+   void setMap() {
       for (int i = 0; i < Const.LIN; i++)
          for (int j = 0; j < Const.COL; j++)
-            out.print(" " + Const.map[i][j].img);
+            map[i][j] = new Coordinate(Const.SIZE_SPRITE_MAP * j, Const.SIZE_SPRITE_MAP * i, "block");
 
-      for (int i = 0; i < Const.qtePlayers; i++)
-         out.print(" " + Const.playerCoordinate[i].getX() + " " + Const.playerCoordinate[i].getY());
-         
-      out.print("\n");
+      // paredes fixas das bordas
+      for (int j = 1; j < Const.COL - 1; j++) {
+         map[0][j].img = "wall-center";
+         map[Const.LIN - 1][j].img = "wall-center";
+      }
+      for (int i = 1; i < Const.LIN - 1; i++) {
+         map[i][0].img = "wall-center";
+         map[i][Const.COL - 1].img = "wall-center";
+      }
+      map[0][0].img = "wall-up-left";
+      map[0][Const.COL - 1].img = "wall-up-right";
+      map[Const.LIN - 1][0].img = "wall-down-left";
+      map[Const.LIN - 1][Const.COL - 1].img = "wall-down-right";
+
+      // paredes fixas centrais
+      for (int i = 2; i < Const.LIN - 2; i++)
+         for (int j = 2; j < Const.COL - 2; j++)
+            if (i % 2 == 0 && j % 2 == 0)
+               map[i][j].img = "wall-center";
+
+      // arredores do spawn
+      map[1][1].img = "floor-1";
+      map[1][2].img = "floor-1";
+      map[2][1].img = "floor-1";
+      map[Const.LIN - 2][Const.COL - 2].img = "floor-1";
+      map[Const.LIN - 3][Const.COL - 2].img = "floor-1";
+      map[Const.LIN - 2][Const.COL - 3].img = "floor-1";
+      map[Const.LIN - 2][1].img = "floor-1";
+      map[Const.LIN - 3][1].img = "floor-1";
+      map[Const.LIN - 2][2].img = "floor-1";
+      map[1][Const.COL - 2].img = "floor-1";
+      map[2][Const.COL - 2].img = "floor-1";
+      map[1][Const.COL - 3].img = "floor-1";
+   }
+   
+   void setPlayerData() {
+      player[0] = new PlayerData(
+         map[1][1].x - Const.VAR_X_SPRITES, 
+         map[1][1].y - Const.VAR_Y_SPRITES
+      );
+
+      player[1] = new PlayerData(
+         map[Const.LIN - 2][Const.COL - 2].x - Const.VAR_X_SPRITES,   
+         map[Const.LIN - 2][Const.COL - 2].y - Const.VAR_Y_SPRITES
+      );
+      player[2] = new PlayerData(
+         map[Const.LIN - 2][1].x - Const.VAR_X_SPRITES,   
+         map[Const.LIN - 2][1].y - Const.VAR_Y_SPRITES
+      );
+      player[3] = new PlayerData(
+         map[1][Const.COL - 2].x - Const.VAR_X_SPRITES,   
+         map[1][Const.COL - 2].y - Const.VAR_Y_SPRITES
+      );
    }
 
-   void clientDesconnected() {
-      System.out.println("Jogador " + id + " se desconectou.");
-      listOutClients.remove(out);
-      Server.logged[id] = false;
-      try {
-         in.close();
-         out.close();
-         clientSocket.close();
-      } catch (IOException e) {}
+   public static void main(String[] args) {
+      new Server(8080);
    }
 }

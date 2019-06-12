@@ -1,8 +1,11 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.swing.*;
-//IDEAL: CLIENTE NAO DEVERIA ACESSAR AS CONSTANTES, TUDO DEVERIA SER ENVIADO PELO SERVIDOR
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Scanner;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 public class Client {
    private Socket socket = null;
@@ -11,19 +14,27 @@ public class Client {
    static int id;
 
    final static int rateStatusUpdate = 115;
-   static Coordinate map[][] = new Coordinate[Const.LIN][Const.COL];;
-   static Coordinate spawn[] = new Coordinate[Const.qtePlayers];
+   static Coordinate map[][] = new Coordinate[Const.LIN][Const.COL];
+
+   static Coordinate spawn[] = new Coordinate[Const.QTY_PLAYERS];
+   static boolean alive[] = new boolean[Const.QTY_PLAYERS];
 
    Client(String host, int porta) {
       try {
+         System.out.print("Estabelecendo conexão com o servidor...");
          this.socket = new Socket(host, porta);
          out = new PrintStream(socket.getOutputStream(), true);  //para enviar ao servidor
          in = new Scanner(socket.getInputStream()); //para receber do servidor
-      } catch (UnknownHostException e) {
-         System.out.println("UnknownHostException: " + e);
-      } catch (IOException e) {
-         System.out.println("IOException: " + e);
+      } 
+      catch (UnknownHostException e) {
+         System.out.println(" erro: " + e + "\n");
+         System.exit(1);
+      } 
+      catch (IOException e) {
+         System.out.println(" erro: " + e + "\n");
+         System.exit(1);
       }
+      System.out.print(" ok\n");
       
       receiveInitialSettings();
       new Receiver().start();
@@ -31,15 +42,18 @@ public class Client {
 
    void receiveInitialSettings() {
       id = in.nextInt();
-      System.out.println("Bem vindo! Seu personagem é o " + Sprite.personColors[Client.id]);
 
       //mapa
       for (int i = 0; i < Const.LIN; i++)
          for (int j = 0; j < Const.COL; j++)
-            map[i][j] = new Coordinate(Const.sizeGrid * j, Const.sizeGrid * i, in.next());
+            map[i][j] = new Coordinate(Const.SIZE_SPRITE_MAP * j, Const.SIZE_SPRITE_MAP * i, in.next());
       
+      //situação (vivo ou morto) inicial de todos os jogadores
+      for (int i = 0; i < Const.QTY_PLAYERS; i++)
+         Client.alive[i] = in.nextBoolean();
+
       //coordenadas inicias de todos os jogadores
-      for (int i = 0; i < Const.qtePlayers; i++)
+      for (int i = 0; i < Const.QTY_PLAYERS; i++)
          Client.spawn[i] = new Coordinate(in.nextInt(), in.nextInt());
    }
    
@@ -50,11 +64,13 @@ public class Client {
 }
 
 class Window extends JFrame {
+   private static final long serialVersionUID = 1L;
+
    Window() {
-      Sprite.readAllImages();
+      Sprite.loadImages();
       Sprite.setMaxLoopStatus();
       
-      add(new Game(Const.COL*Const.sizeGrid, Const.LIN*Const.sizeGrid));
+      add(new Game(Const.COL*Const.SIZE_SPRITE_MAP, Const.LIN*Const.SIZE_SPRITE_MAP));
       setTitle("BomberMan");
       pack();
       setVisible(true);

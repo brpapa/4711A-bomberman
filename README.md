@@ -2,9 +2,9 @@ Reconstrução do clássico Bomberman em arquitetura cliente-servidor para a dis
 
 # Como executar
 No diretório bomber-man/src:
-- Compile: `javac *.java`
-- Inicie o servidor: `java Server`
-- Inicie o cliente: `java Client`
+- Compilando: `javac *.java`
+- Iniciando o servidor: `java Server`
+- Iniciando o cliente: `java Client`
 
 # Introdução
 Lançado pela desenvolvedora Hudson Soft em 1983, o clássico Bomberman foi um dos jogos mais conhecidos da história.

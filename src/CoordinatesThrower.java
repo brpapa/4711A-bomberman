@@ -1,107 +1,130 @@
-import java.io.PrintStream;
+import java.awt.event.KeyEvent;
 
 //thread que dispara as coordenadas seguintes aos clientes enquanto W/A/S/D não é solto
 class CoordinatesThrower extends Thread {
-   boolean up, right, left, down; // true se pressionado, false caso contrário
-   int id, x, y;
+   boolean up, right, left, down;
+   int id;
 
    CoordinatesThrower(int id) {
       this.id = id;
-      this.x = Const.playerCoordinate[id].getX();
-      this.y = Const.playerCoordinate[id].getY();
-      up = false;
-      down = false;
-      right = false;
-      left = false;
+      up = down = right = left = false;
    }
 
    public void run() {
-      int newX = x, newY = y;
+      int newX = Server.player[id].x;
+      int newY = Server.player[id].y;
+      
       while (true) {
          if (up || down || right || left) {
-            if (up)           newY = y - Const.RESIZE;
-            else if (down)    newY = y + Const.RESIZE;
-            else if (right)   newX = x + Const.RESIZE;
-            else if (left)    newX = x - Const.RESIZE;
+            if (up)           newY = Server.player[id].y - Const.RESIZE;
+            else if (down)    newY = Server.player[id].y + Const.RESIZE;
+            else if (right)   newX = Server.player[id].x + Const.RESIZE;
+            else if (left)    newX = Server.player[id].x - Const.RESIZE;
 
             if (coordinateIsValid(newX, newY)) {
-               for (PrintStream outClient : ClientManager.listOutClients) // para cada cliente logado
-                  outClient.println(this.id + " " + "newCoordinate" + " " + newX + " " + newY);
-               x = newX;
-               y = newY;
-               Const.playerCoordinate[this.id].setX(newX);
-               Const.playerCoordinate[this.id].setY(newY);
+               ClientManager.sendToAllClients(id + " newCoordinate " + newX + " " + newY);
+
+               Server.player[id].x = newX;
+               Server.player[id].y = newY;
             } else {
-               newX = x;
-               newY = y;
+               newX = Server.player[id].x;
+               newY = Server.player[id].y;
             }
             try {
-               sleep(Const.rateCoordinatesUpdate);
+               sleep(Const.RATE_COORDINATES_UPDATE);
             } catch (InterruptedException e) {}
          }
-         try {
-            sleep(0);
-         } catch (InterruptedException e) {}
+         try {sleep(0);} catch (InterruptedException e) {}
       }
    }
 
-   // encontra sobre quais índices do mapa o jogador está e verifica se é válido
+   int getColumnOfMap(int x) {
+      return x/Const.SIZE_SPRITE_MAP;
+   }
+   int getLineOfMap(int y) {
+      return y/Const.SIZE_SPRITE_MAP;
+   }
+
+   // encontra sobre quais sprites do mapa o jogador está e verifica se são válidos
    boolean coordinateIsValid(int newX, int newY) {
-      int bodyX, bodyY, bodyNewX, bodyNewY;
-      // ponto central do corpo do personagem
-      bodyX = x + Const.widthPlayer / 2;
-      bodyY = y + 2 * Const.heightPlayer / 3;
-      Const.map[bodyY/Const.sizeGrid][bodyX/Const.sizeGrid].playerOn[this.id] = false;
-      bodyNewX = newX + Const.widthPlayer / 2;
-      bodyNewY = newY + 2 * Const.heightPlayer / 3;
-      Const.map[bodyNewY/Const.sizeGrid][bodyNewX/Const.sizeGrid].playerOn[this.id] = true;
+      if (!Server.player[id].alive)
+         return false;
 
+      //verifica se o jogador foi para o fogo (coordenada do centro do corpo)
+      int xBody = newX + Const.WIDTH_SPRITE_PLAYER/2;
+      int yBody = newY + 2*Const.HEIGHT_SPRITE_PLAYER/3;
 
+      if (Server.map[getLineOfMap(yBody)][getColumnOfMap(xBody)].img.contains("explosion")) {
+         Server.player[id].alive = false;
+         ClientManager.sendToAllClients(id + " newStatus dead");
+         return true;
+      }
+
+      
       int x[] = new int[4], y[] = new int[4];
       // 0: ponto do canto superior esquerdo
-      x[0] = Const.varX + newX + Const.RESIZE;
-      y[0] = Const.varY + newY + Const.RESIZE;
+      x[0] = Const.VAR_X_SPRITES + newX + Const.RESIZE;
+      y[0] = Const.VAR_Y_SPRITES + newY + Const.RESIZE;
       // 1: ponto do canto superior direito
-      x[1] = Const.varX + newX + Const.sizeGrid - 2 * Const.RESIZE;
-      y[1] = Const.varY + newY + Const.RESIZE;
+      x[1] = Const.VAR_X_SPRITES + newX + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      y[1] = Const.VAR_Y_SPRITES + newY + Const.RESIZE;
       // 2: ponto do canto inferior esquerdo
-      x[2] = Const.varX + newX + Const.RESIZE;
-      y[2] = Const.varY + newY + Const.sizeGrid - 2 * Const.RESIZE;
+      x[2] = Const.VAR_X_SPRITES + newX + Const.RESIZE;
+      y[2] = Const.VAR_Y_SPRITES + newY + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
       // 3: ponto do canto inferior direito
-      x[3] = Const.varX + newX + Const.sizeGrid - 2 * Const.RESIZE;
-      y[3] = Const.varY + newY + Const.sizeGrid - 2 * Const.RESIZE;
-
+      x[3] = Const.VAR_X_SPRITES + newX + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      y[3] = Const.VAR_Y_SPRITES + newY + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      
       int l[] = new int[4], c[] = new int[4];
-      for (int i = 0; i < 4; i++) { // converte todos os pontos para índices do mapa
-         c[i] = x[i] / Const.sizeGrid;
-         l[i] = y[i] / Const.sizeGrid;
+      for (int i = 0; i < 4; i++) { 
+         c[i] = getColumnOfMap(x[i]);
+         l[i] = getLineOfMap(y[i]);
       }
-      // System.out.format("%s %s %s %s\n", map[l[0]][c[0]].img, map[l[1]][c[1]].img, map[l[2]][c[2]].img, map[l[3]][c[3]].img);
+      
+      //PRECISA PERMITIR ANDAR CASO A BOMBA TENHA ACABADO DE SER PLANTADA, MAS BLOQUEAR AO TENTAR VOLTAR
 
-      // retorna true apenas se todos forem "floor-1" ou a bomba acabou de ser plantada
       if (
-         (Const.map[l[0]][c[0]].img.equals("floor-1") || Const.map[l[0]][c[0]].img.contains("bomb-planted")) && 
-         (Const.map[l[1]][c[1]].img.equals("floor-1") || Const.map[l[1]][c[1]].img.contains("bomb-planted")) &&
-         (Const.map[l[2]][c[2]].img.equals("floor-1") || Const.map[l[2]][c[2]].img.contains("bomb-planted")) && 
-         (Const.map[l[3]][c[3]].img.equals("floor-1") || Const.map[l[3]][c[3]].img.contains("bomb-planted"))
-      ) return true;
+         (Server.map[l[0]][c[0]].img.equals("floor-1") || Server.map[l[0]][c[0]].img.contains("bomb-planted") || Server.map[l[0]][c[0]].img.contains("explosion")) && 
+         (Server.map[l[1]][c[1]].img.equals("floor-1") || Server.map[l[1]][c[1]].img.contains("bomb-planted") || Server.map[l[1]][c[1]].img.contains("explosion")) &&
+         (Server.map[l[2]][c[2]].img.equals("floor-1") || Server.map[l[2]][c[2]].img.contains("bomb-planted") || Server.map[l[2]][c[2]].img.contains("explosion")) && 
+         (Server.map[l[3]][c[3]].img.equals("floor-1") || Server.map[l[3]][c[3]].img.contains("bomb-planted") || Server.map[l[3]][c[3]].img.contains("explosion"))
+      ) 
+         return true;
 
       return false;
    }
 
-   void setUp() {
-      up = true; down = false; right = false; left = false;
+   void keyCodePressed(int keyCode) {
+      switch (keyCode) {
+         case KeyEvent.VK_W: 
+            up = true; down = right = left = false;
+            ClientManager.sendToAllClients(this.id + " newStatus up");
+            break;
+         case KeyEvent.VK_S: 
+            down = true; up = right = left = false;
+            ClientManager.sendToAllClients(this.id + " newStatus down");
+            break;
+         case KeyEvent.VK_D: 
+            right = true; up = down = left = false;
+            ClientManager.sendToAllClients(this.id + " newStatus right");
+            break;
+         case KeyEvent.VK_A: 
+            left = true; up = down = right = false;
+            ClientManager.sendToAllClients(this.id + " newStatus left");
+            break;
+      }
    }
 
-   void setDown() {
-      up = false; down = true; right = false; left = false;
-   }
+   void keyCodeReleased(int keyCode) {
+      if (keyCode != KeyEvent.VK_W && keyCode != KeyEvent.VK_S && keyCode != KeyEvent.VK_D && keyCode != KeyEvent.VK_A)
+         return;
 
-   void setRight() {
-      up = false; down = false; right = true; left = false;
-   }
-
-   void setLeft() {
-      up = false; down = false; right = false; left = true;
+      ClientManager.sendToAllClients(this.id + " stopStatusUpdate");
+      switch (keyCode) {
+         case KeyEvent.VK_W: up = false; break;
+         case KeyEvent.VK_S: down = false; break;
+         case KeyEvent.VK_D: right = false; break;
+         case KeyEvent.VK_A: left = false; break;
+      }
    }
 }

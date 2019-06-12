@@ -5,14 +5,6 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 
 public class Sprite {
-   final static Coordinate spawn[] = new Coordinate[4];
-   static void setSpawnCoordinates() {
-      spawn[0] = Client.map[1][1];
-      spawn[1] = Client.map[Const.LIN - 2][Const.COL - 2];
-      spawn[2] = Client.map[Const.LIN - 2][1];
-      spawn[3] = Client.map[1][Const.COL - 2];
-   }
-
    final static String personColors[] = {
       "white", 
       "black", 
@@ -26,8 +18,8 @@ public class Sprite {
       "background", 
       "block", 
       "block-on-fire-1", "block-on-fire-2", "block-on-fire-3", "block-on-fire-4", "block-on-fire-5", "block-on-fire-6", 
-      "bomb-1", "bomb-2", 
-      "bomb-red-1", "bomb-red-2", 
+      "bomb-icone-1", "bomb-icone-2", 
+      "bomb-red-icone-1", "bomb-red-icone-2", 
       "bomb-planted-1", "bomb-planted-2", "bomb-planted-3", 
       "bomb-planted-red-1", "bomb-planted-red-2", "bomb-planted-red-3", 
       "center-explosion-1", "center-explosion-2", "center-explosion-3", "center-explosion-4", "center-explosion-5", 
@@ -65,7 +57,7 @@ public class Sprite {
       maxLoopStatus.put("win", 5);
    }
 
-   static void readAllImages() {
+   static void loadImages() {
       try {
          System.out.print("Carregando imagens...");
          for (String keyWord : mapKeyWords)
@@ -75,9 +67,9 @@ public class Sprite {
             for (String keyWord : personKeyWords)
                ht.put(color+"/"+keyWord, ImageIO.read(new File("../images/person/"+color+"/"+keyWord+".png")));
       } catch (IOException e) {
-         System.out.print(" ERROR\n");
+         System.out.print(" erro!\n");
          System.exit(1);
       }
-      System.out.print(" OK\n");
+      System.out.print(" ok!\n");
    }
 }

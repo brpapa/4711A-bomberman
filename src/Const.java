@@ -1,68 +1,49 @@
-//constantes usadas no lado do servidor
-class Const {
-   final static int qtePlayers = 4;
+// acessada pelo servidor e pelo cliente
+interface Const {
+   // se não for 4, muitas coisas precisam deixar de ser instanciadas
+   final static int QTY_PLAYERS = 4; 
 
-   final static int LIN = 9, COL = 11; // SEMPRE IMPAR
+   final static int LIN = 9, COL = 7; // sempre ímpar
+   final static int RESIZE = 4; // tamanho do pixel
 
-   final static int RESIZE = 4;
-   final static int sizeGrid = 16 * RESIZE;
-   final static int widthPlayer = 22 * RESIZE;
-   final static int heightPlayer = 33 * RESIZE;
-   // diferença entre img do mapa e do personagem
-   final static int varX = 3 * RESIZE;
-   final static int varY = 16 * RESIZE;
+   final static int SIZE_SPRITE_MAP = 16 * RESIZE;
+   final static int WIDTH_SPRITE_PLAYER = 22 * RESIZE;
+   final static int HEIGHT_SPRITE_PLAYER = 33 * RESIZE;
 
-   final static int rateMapUpdate = 125;
-   final static int ratePlayerStatusUpdate = 115;
-   final static int rateCoordinatesUpdate = 27;
+   // diferença de pixels entre o sprite do mapa e do jogador
+   final static int VAR_X_SPRITES = 3 * RESIZE;
+   final static int VAR_Y_SPRITES = 16 * RESIZE;
 
-   final static Coordinate playerCoordinate[] = new Coordinate[4];
-   static void setPlayerCoordinates() {
-      playerCoordinate[0] = new Coordinate(map[1][1].getX() - varX, map[1][1].getY() - varY);
-      playerCoordinate[1] = new Coordinate(map[LIN-2][COL-2].getX() - varX, map[LIN-2][COL-2].getY() - varY);
-      playerCoordinate[2] = new Coordinate(map[LIN-2][1].getX() - varX, map[LIN-2][1].getY() - varY);
-      playerCoordinate[3] = new Coordinate(map[1][COL-2].getX() - varX, map[1][COL-2].getY() - varY);
+   final static int RATE_BOMB_UPDATE = 125;
+   final static int RATE_BLOCK_UPDATE = 100;
+   final static int RATE_FIRE_UPDATE = 35;
+   final static int RATE_PLAYER_STATUS_UPDATE = 90;
+   final static int RATE_COORDINATES_UPDATE = 27;
+
+   final static String indexBombPlanted[] = {
+      "1", "2", "3", "2", "1", "2", "3", "2", "1", "2", "3", "2", "1", "2", 
+      "red-3", "red-2", "red-1", "red-2", "red-3", "red-2", "red-3", "red-2", "red-3", "red-2", "red-3"
+   };
+   final static String indexExplosion[] = {
+      "1", "2", "3", "4", "5", "4", "3", "4", "5", "4", "3", "4", "5", "4", "3", "4", "5", "4", "3", "2", "1"
+   };
+   final static String indexBlockOnFire[] = {
+      "1", "2", "1", "2", "1", "2", "3", "4", "5", "6"
+   };
+}
+
+class Coordinate {
+   public int x, y;
+   String img;
+
+   Coordinate(int x, int y) {
+      this.x = x;
+      this.y = y;
    }
 
-   static Coordinate map[][] = new Coordinate[LIN][COL];
-   static void initMap() {
-      for (int i = 0; i < LIN; i++)
-         for (int j = 0; j < COL; j++)
-            map[i][j] = new Coordinate(sizeGrid * j, sizeGrid * i, "block");
-            // map[i][j] = new Coordinate(sizeGrid * j, sizeGrid * i, "floor-1");
-      
-      //paredes fixas das bordas
-      for (int j = 1; j < COL-1; j++) {
-         map[0][j].img = "wall-center";
-         map[LIN-1][j].img = "wall-center";
-      }
-      for (int i = 1; i < LIN-1; i++) {
-         map[i][0].img = "wall-center";
-         map[i][COL-1].img = "wall-center";
-      }
-      map[0][0].img = "wall-up-left";
-      map[0][COL-1].img = "wall-up-right";
-      map[LIN-1][0].img = "wall-down-left";
-      map[LIN-1][COL-1].img = "wall-down-right";
-
-      //paredes fixas centrais
-      for (int i = 2; i < LIN-2; i++)
-         for (int j = 2; j < COL-2; j++)
-            if (i % 2 == 0 && j % 2 == 0)
-               map[i][j].img = "wall-center";
-
-      //arredores do spawn
-      map[1][1].img = "floor-1";
-      map[1][2].img = "floor-1";
-      map[2][1].img = "floor-1";
-      map[LIN-2][COL-2].img = "floor-1";
-      map[LIN-3][COL-2].img = "floor-1";
-      map[LIN-2][COL-3].img = "floor-1";
-      map[LIN-2][1].img = "floor-1";
-      map[LIN-3][1].img = "floor-1";
-      map[LIN-2][2].img = "floor-1";
-      map[1][COL-2].img = "floor-1";
-      map[2][COL-2].img = "floor-1";
-      map[1][COL-3].img = "floor-1";
+   Coordinate(int x, int y, String img) {
+      this.x = x;
+      this.y = y;
+      this.img = img;
    }
 }
