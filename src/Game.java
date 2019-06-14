@@ -34,7 +34,7 @@ public class Game extends JPanel {
       enemy3.draw(g);
       you.draw(g);
       
-      // System.out.format("%s: %s [%04d, %04d]\n", Game.you.color, Game.you.statusWithIndex, Game.you.x, Game.you.y);;
+      // System.out.format("%s: %s [%04d, %04d]\n", Game.you.color, Game.you.status, Game.you.x, Game.you.y);;
       Toolkit.getDefaultToolkit().sync();
    }
    

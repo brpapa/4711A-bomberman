@@ -58,7 +58,7 @@ public class Client {
    }
    
    public static void main(String[] args) {
-      new Client("186.217.173.170", 8080);
+      new Client("127.0.0.1", 8080);
       new Window();
    }
 }

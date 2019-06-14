@@ -1,10 +1,12 @@
 Reconstrução do clássico Bomberman em arquitetura cliente-servidor para a disciplina Técnicas de Programação.
 
+![Interface gráfica do jogo](/images/screenshot.png)
+
 # Como executar
 No diretório bomber-man/src:
-- Compilando: `javac *.java`
-- Iniciando o servidor: `java Server`
-- Iniciando o cliente: `java Client`
+- Compile: `javac *.java`
+- Inicie o servidor: `java Server`
+- Inicie o cliente: `java Client`
 
 # Introdução
 Lançado pela desenvolvedora Hudson Soft em 1983, o clássico Bomberman foi um dos jogos mais conhecidos da história.
@@ -14,8 +16,8 @@ Trata-se de um jogo de estratégia onde vence aquele que explodir o adversári
 Desenvolver programas em Java para que no mínimo duas pessoas, possivelmente localizadas remotamente, possam jogar interagindo através do teclado em um mapa 2D exibido para o usuário através de uma interface gráfica.
 
 # Materiais e métodos
-O jogo apresenta uma arquitetura cliente-servidor onde dois jogadores remotos, interagindo com programas clientes idênticos, disputam através de um programa servidor também remoto. Estes programas serão desenvolvidos utilizando a linguagem Java, e Swing para o desenvolvimento da interface. O programa cliente será responsável pela interface com o usuário.
-Através de um mapa exibido por uma interface gráfica, o jogador fará seus movimentos com as setas do teclado para movimentar o seu personagem para cima, baixo, direita ou esquerda, e ao apertar a tecla B a bomba será plantada na posição atual. O servidor é responsável por intermediar os programas clientes. Este programa fica esperando as jogadas realizadas pelos clientes. Quando uma jogada é recebida, este programa servidor fará a consistência da jogada, atualizará uma representação interna do jogo e devolverá a todos os clientes o estado atual do mapa, se, por outro lado, for tentada em uma jogada inválida, este programa ignorará a jogada.
+O jogo apresenta uma arquitetura cliente-servidor onde dois ou quatro jogadores remotos, interagindo com programas clientes idênticos, disputam através de um programa servidor também remoto. Estes programas serão desenvolvidos utilizando a linguagem Java, e Swing para o desenvolvimento da interface.
+Através de um mapa exibido por uma interface gráfica, o jogador fará seus movimentos com as teclas W,A,S,D para movimentar o seu personagem para cima, esquerda, baixo ou direita, e ao apertar a tecla B a bomba será plantada na posição atual. O servidor, responsável por intermediar os programas clientes, fica esperando as jogadas realizadas pelos clientes. Quando uma jogada é recebida, o servidor fará a consistência da jogada, atualizará uma representação interna do jogo e devolverá a todos os clientes o estado atual do mapa. Se, por outro lado, for tentada em uma jogada inválida, o servidor ignorará a jogada.
 
 # Créditos
 - Sprites: zanaku
