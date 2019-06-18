@@ -59,9 +59,13 @@ class CoordinatesThrower extends Thread {
          ClientManager.sendToAllClients(id + " newStatus dead");
          return true;
       }
-
       
       int x[] = new int[4], y[] = new int[4];
+      int c[] = new int[4], l[] = new int[4];
+
+
+      // EM RELAÇÃO À NOVA COORDENADA
+
       // 0: ponto do canto superior esquerdo
       x[0] = Const.VAR_X_SPRITES + newX + Const.RESIZE;
       y[0] = Const.VAR_Y_SPRITES + newY + Const.RESIZE;
@@ -75,22 +79,57 @@ class CoordinatesThrower extends Thread {
       x[3] = Const.VAR_X_SPRITES + newX + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
       y[3] = Const.VAR_Y_SPRITES + newY + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
       
-      int l[] = new int[4], c[] = new int[4];
       for (int i = 0; i < 4; i++) { 
          c[i] = getColumnOfMap(x[i]);
          l[i] = getLineOfMap(y[i]);
       }
-      
-      //PRECISA PERMITIR ANDAR CASO A BOMBA TENHA ACABADO DE SER PLANTADA, MAS BLOQUEAR AO TENTAR VOLTAR
 
       if (
-         (Server.map[l[0]][c[0]].img.equals("floor-1") || Server.map[l[0]][c[0]].img.contains("bomb-planted") || Server.map[l[0]][c[0]].img.contains("explosion")) && 
-         (Server.map[l[1]][c[1]].img.equals("floor-1") || Server.map[l[1]][c[1]].img.contains("bomb-planted") || Server.map[l[1]][c[1]].img.contains("explosion")) &&
-         (Server.map[l[2]][c[2]].img.equals("floor-1") || Server.map[l[2]][c[2]].img.contains("bomb-planted") || Server.map[l[2]][c[2]].img.contains("explosion")) && 
-         (Server.map[l[3]][c[3]].img.equals("floor-1") || Server.map[l[3]][c[3]].img.contains("bomb-planted") || Server.map[l[3]][c[3]].img.contains("explosion"))
+         (Server.map[l[0]][c[0]].img.equals("floor-1") || Server.map[l[0]][c[0]].img.contains("explosion")) && 
+         (Server.map[l[1]][c[1]].img.equals("floor-1") || Server.map[l[1]][c[1]].img.contains("explosion")) &&
+         (Server.map[l[2]][c[2]].img.equals("floor-1") || Server.map[l[2]][c[2]].img.contains("explosion")) && 
+         (Server.map[l[3]][c[3]].img.equals("floor-1") || Server.map[l[3]][c[3]].img.contains("explosion"))
       ) 
-         return true;
+         return true; //estará em uma coordenada válida
 
+      if (
+         (Server.map[l[0]][c[0]].img.contains("block") || Server.map[l[0]][c[0]].img.contains("wall")) || 
+         (Server.map[l[1]][c[1]].img.contains("block") || Server.map[l[1]][c[1]].img.contains("wall")) ||
+         (Server.map[l[2]][c[2]].img.contains("block") || Server.map[l[2]][c[2]].img.contains("wall")) || 
+         (Server.map[l[3]][c[3]].img.contains("block") || Server.map[l[3]][c[3]].img.contains("wall"))
+      ) 
+         return false; //estará sobre uma parede
+
+
+
+      // EM RELAÇÃO À COORDENADA ANTERIOR
+
+      // 0: ponto do canto superior esquerdo
+      x[0] = Const.VAR_X_SPRITES + Server.player[id].x + Const.RESIZE;
+      y[0] = Const.VAR_Y_SPRITES + Server.player[id].y + Const.RESIZE;
+      // 1: ponto do canto superior direito
+      x[1] = Const.VAR_X_SPRITES + Server.player[id].x + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      y[1] = Const.VAR_Y_SPRITES + Server.player[id].y + Const.RESIZE;
+      // 2: ponto do canto inferior esquerdo
+      x[2] = Const.VAR_X_SPRITES + Server.player[id].x + Const.RESIZE;
+      y[2] = Const.VAR_Y_SPRITES + Server.player[id].y + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      // 3: ponto do canto inferior direito
+      x[3] = Const.VAR_X_SPRITES + Server.player[id].x + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      y[3] = Const.VAR_Y_SPRITES + Server.player[id].y + Const.SIZE_SPRITE_MAP - 2 * Const.RESIZE;
+      
+      for (int i = 0; i < 4; i++) { 
+         c[i] = getColumnOfMap(x[i]);
+         l[i] = getLineOfMap(y[i]);
+      }
+
+      if (
+         Server.map[l[0]][c[0]].img.contains("bomb-planted") ||
+         Server.map[l[1]][c[1]].img.contains("bomb-planted") ||
+         Server.map[l[2]][c[2]].img.contains("bomb-planted") ||
+         Server.map[l[3]][c[3]].img.contains("bomb-planted")
+      ) 
+         return true; //estava sobre uma bomba que acabou de platar, precisa sair
+      
       return false;
    }
 

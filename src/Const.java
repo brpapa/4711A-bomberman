@@ -3,7 +3,7 @@ interface Const {
    // se não for 4, muitas coisas precisam deixar de ser instanciadas
    final static int QTY_PLAYERS = 4; 
 
-   final static int LIN = 9, COL = 7; // sempre ímpar
+   final static int LIN = 9, COL = 9; // sempre ímpar
    final static int RESIZE = 4; // tamanho do pixel
 
    final static int SIZE_SPRITE_MAP = 16 * RESIZE;
