@@ -3,7 +3,7 @@ interface Const {
    // se não for 4, muitas coisas precisam deixar de ser instanciadas
    final static int QTY_PLAYERS = 4; 
 
-   final static int LIN = 9, COL = 13; // sempre ímpar
+   final static int LIN = 9, COL = 7; // sempre ímpar
    final static int RESIZE = 4; // tamanho do pixel
 
    final static int SIZE_SPRITE_MAP = 16 * RESIZE;
@@ -14,7 +14,7 @@ interface Const {
    final static int VAR_X_SPRITES = 3 * RESIZE;
    final static int VAR_Y_SPRITES = 16 * RESIZE;
 
-   final static int RATE_BOMB_UPDATE = 125;
+   final static int RATE_BOMB_UPDATE = 90;
    final static int RATE_BLOCK_UPDATE = 100;
    final static int RATE_FIRE_UPDATE = 35;
    final static int RATE_PLAYER_STATUS_UPDATE = 90;

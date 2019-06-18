@@ -20,7 +20,7 @@ public class Receiver extends Thread {
          this.p = fromWhichPlayerIs(Client.in.nextInt()); //id do cliente
          str = Client.in.next();
 
-         if (str.equals("mapUpdate")) { //nao vem id
+         if (str.equals("mapUpdate")) { //p null
             Game.setSpriteMap(Client.in.next(), Client.in.nextInt(), Client.in.nextInt());
             Game.you.panel.repaint();
          }

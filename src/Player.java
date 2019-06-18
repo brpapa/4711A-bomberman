@@ -1,5 +1,4 @@
 import java.awt.Graphics;
-
 import javax.swing.JPanel;
 
 //tanto para you quanto para enemy
@@ -42,16 +41,20 @@ class StatusChanger extends Thread {
    public void run() {
       while (true) {
          p.status = status + "-" + index;
-         if (playerInMotion)
+         if (playerInMotion) {
             index = (++index) % Sprite.maxLoopStatus.get(status);
+            p.panel.repaint();
+         }
 
-         p.panel.repaint();
          try {
             Thread.sleep(Const.RATE_PLAYER_STATUS_UPDATE);
          } catch (InterruptedException e) {}
 
-         if (p.status.equals("dead-4"))
+         if (p.status.equals("dead-4")) {
             p.alive = false;
+            if (Game.you == p)
+               System.exit(1);
+         }
       }
    }
    void setLoopStatus(String status) {
