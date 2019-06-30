@@ -59,7 +59,7 @@ class ClientManager extends Thread {
          else if (str[0].equals("keyCodeReleased") && Server.player[id].alive) {
             ct.keyCodeReleased(Integer.parseInt(str[1]));
          } 
-         else if (str[0].equals("pressedB") && Server.player[id].numberOfBombs >= 1) {
+         else if (str[0].equals("pressedSpace") && Server.player[id].numberOfBombs >= 1) {
             Server.player[id].numberOfBombs--;
             mt.setBombPlanted(Integer.parseInt(str[1]), Integer.parseInt(str[2]));
          }

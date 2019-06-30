@@ -3,7 +3,7 @@ Reconstrução do clássico Bomberman em arquitetura cliente-servidor para a dis
 ![Interface gráfica do jogo](./images/screenshot.png)
 
 # Como executar
-No diretório bomber-man/src:
+No diretório bomberman/src:
 - Compile: `javac *.java`
 - Inicie o servidor: `java Server`
 - Inicie o cliente: `java Client`
@@ -17,7 +17,7 @@ Desenvolver programas em Java para que no mínimo duas pessoas, possivelmente lo
 
 # Materiais e métodos
 O jogo apresenta uma arquitetura cliente-servidor onde dois ou quatro jogadores remotos, interagindo com programas clientes idênticos, disputam através de um programa servidor também remoto. Estes programas serão desenvolvidos utilizando a linguagem Java, e Swing para o desenvolvimento da interface.
-Através de um mapa exibido por uma interface gráfica, o jogador fará seus movimentos com as teclas W,A,S,D para movimentar o seu personagem para cima, esquerda, baixo ou direita, e ao apertar a tecla B a bomba será plantada na posição atual. O servidor, responsável por intermediar os programas clientes, fica esperando as jogadas realizadas pelos clientes. Quando uma jogada é recebida, o servidor fará a consistência da jogada, atualizará uma representação interna do jogo e devolverá a todos os clientes o estado atual do mapa. Se, por outro lado, for tentada em uma jogada inválida, o servidor ignorará a jogada.
+Através de um mapa exibido por uma interface gráfica, o jogador fará seus movimentos com as teclas W,A,S,D para movimentar o seu personagem para cima, esquerda, baixo ou direita, e ao apertar o ESPAÇO a bomba será plantada na posição atual. O servidor, responsável por intermediar os programas clientes, fica esperando as jogadas realizadas pelos clientes. Quando uma jogada é recebida, o servidor fará a consistência da jogada, atualizará uma representação interna do jogo e devolverá a todos os clientes o estado atual do mapa. Se, por outro lado, for tentada em uma jogada inválida, o servidor ignorará a jogada.
 
 
 
@@ -26,5 +26,4 @@ Através de um mapa exibido por uma interface gráfica, o jogador fará seus m
 Autor: [Bruno Papa](https://github.com/brnpapa)
 
 Sprites ripped by Zanaku
-
 Game tilesets ripped by Plasma Captain
