@@ -71,10 +71,10 @@ class Window extends JFrame {
       Sprite.setMaxLoopStatus();
       
       add(new Game(Const.COL*Const.SIZE_SPRITE_MAP, Const.LIN*Const.SIZE_SPRITE_MAP));
-      setTitle("BomberMan");
+      setTitle("bomberman");
       pack();
       setVisible(true);
-      // setLocationRelativeTo(null);
+      setLocationRelativeTo(null);
       setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
       addKeyListener(new Sender());
